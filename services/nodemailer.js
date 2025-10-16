@@ -26,7 +26,7 @@ export const sendVerificationMail = async (to, name, token) => {
             ],
             Subject: "Mail Doğrulama",
           TextPart: `Merhaba ${name}, doğrulama linkiniz: http://localhost:3000/api/verify?token=${token}`,
-HTMLPart: `<h3>Merhaba ${name}</h3><p>Doğrulama linkiniz: <a href="http://localhost:3000/api/verify?token=${token}">Doğrula</a></p>`,
+      HTMLPart: `<h3>Merhaba ${name}</h3><p>Doğrulama linkiniz: <a href="http://localhost:3000/api/verify?token=${token}">Doğrula</a></p>`,
 
           },
         ],
