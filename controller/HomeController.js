@@ -23,31 +23,36 @@ export const upload = multer({ storage });
 
 export const AddHome = async (req, res) => {
   try {
-  
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ message: "Token bulunamadı" });
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const userId = decoded.userId;
 
-   
-    const { il, ilce, adres, odaSayisi, metrekare, fiyat, aciklama } = req.body;
+    const {
+      il,
+      ilce,
+      adres,
+      numara,       // eklendi
+      odaSayisi,
+      brutMetrekare, // eklendi
+      netMetrekare,  // eklendi
+      fiyat,
+      aciklama,
+    } = req.body;
 
-   
     const images = req.files ? req.files.map((file) => file.filename) : [];
 
- 
-    if (!il || !ilce || !adres || !odaSayisi || !metrekare || !fiyat || !aciklama) {
+    if (!il || !ilce || !adres || !odaSayisi || !brutMetrekare || !netMetrekare || !fiyat || !aciklama) {
       return res.status(400).json({ message: "Tüm alanlar doldurulmalıdır" });
     }
 
-    
     const result = await pool.query(
       `INSERT INTO homes 
-      (user_id, il, ilce, adres, oda_sayisi, metrekare, fiyat, aciklama, images)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::text[])
+      (user_id, il, ilce, adres, numara, oda_sayisi, brut_metrekare, net_metrekare, fiyat, aciklama, images)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::text[])
        RETURNING *`,
-      [userId, il, ilce, adres, odaSayisi, metrekare, fiyat, aciklama, images]
+      [userId, il, ilce, adres, numara, odaSayisi, brutMetrekare, netMetrekare, fiyat, aciklama, images]
     );
 
     res.status(201).json({
@@ -93,8 +98,15 @@ export const GetDetailHomes = async (req, res) => {
 
     const home = result.rows[0];
 
-    // images alanı string ise diziye çevir
-    home.images = home.images ? home.images.split(',') : [];
+    // PostgreSQL'de images zaten bir dizi olarak gelir, split KULLANMA!
+    // Sadece images alanını kontrol et ve güvenli hale getir
+    if (!home.images) {
+      home.images = [];
+    } else if (typeof home.images === 'string') {
+      // Eski kayıtlar için (string olanlar) split kullan
+      home.images = home.images.split(',');
+    }
+    // Zaten dizi ise hiçbir şey yapma
 
     res.json({ home });
   } catch (error) {
