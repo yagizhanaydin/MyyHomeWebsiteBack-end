@@ -3,20 +3,27 @@ import dotenv from 'dotenv';
 import cors from 'cors';  
 import authRoutes from './routes/authRoutes.js';
 import ilanRoutes from './routes/ilanRoutes.js'; 
+import odaYenilemeRoutes from './routes/OdaYenilemeRoutes.js'; // <- yeni ekleme
 import path from 'path';
+
 dotenv.config();
 const app = express();
-app.use(express.json());
 
+app.use(express.json());
 
 app.use(cors({
   origin: 'http://localhost:5173', 
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   credentials: true,
 }));
+
+
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+
 app.use('/api', authRoutes);
-app.use('/home',ilanRoutes)
-const PORT = process.env.PORT;
+app.use('/home', ilanRoutes);
+app.use('/oda-yenileme', odaYenilemeRoutes); 
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server ${PORT} portunda çalışıyor`));

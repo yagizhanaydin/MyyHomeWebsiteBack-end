@@ -33,10 +33,10 @@ export const AddHome = async (req, res) => {
       il,
       ilce,
       adres,
-      numara,       // eklendi
+      numara,      
       odaSayisi,
-      brutMetrekare, // eklendi
-      netMetrekare,  // eklendi
+      brutMetrekare, 
+      netMetrekare,  
       fiyat,
       aciklama,
     } = req.body;
@@ -98,15 +98,14 @@ export const GetDetailHomes = async (req, res) => {
 
     const home = result.rows[0];
 
-    // PostgreSQL'de images zaten bir dizi olarak gelir, split KULLANMA!
-    // Sadece images alanını kontrol et ve güvenli hale getir
+   
     if (!home.images) {
       home.images = [];
     } else if (typeof home.images === 'string') {
-      // Eski kayıtlar için (string olanlar) split kullan
+   
       home.images = home.images.split(',');
     }
-    // Zaten dizi ise hiçbir şey yapma
+   
 
     res.json({ home });
   } catch (error) {
