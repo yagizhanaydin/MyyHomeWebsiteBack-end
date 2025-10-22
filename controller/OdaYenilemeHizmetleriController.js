@@ -32,7 +32,7 @@ export const AddOdaYenileme = async (req, res) => {
 
     let { il, ilce, odaTurleri, odaSayisi, aciklama } = req.body;
 
-    // FormData ile array tek gelirse string oluyor
+   
     if (!odaTurleri) return res.status(400).json({ message: "Oda türleri eksik" });
     if (!Array.isArray(odaTurleri)) odaTurleri = [odaTurleri];
 

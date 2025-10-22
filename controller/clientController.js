@@ -6,25 +6,23 @@ import { sendVerificationMail } from '../services/nodemailer.js';
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 
-
-export const register = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "Eksik alan" });
+ export const register = async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) 
+    return res.status(400).json({ message: "Eksik alan" });
 
   try {
-  
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  
     const token = crypto.randomBytes(32).toString('hex');
 
     await pool.query(
-      'INSERT INTO users (email, password, verification_token, is_verified) VALUES ($1, $2, $3, FALSE)',
-      [email, hashedPassword, token]
+      'INSERT INTO users (name, email, password, verification_token, is_verified) VALUES ($1, $2, $3, $4, FALSE)',
+      [name, email, hashedPassword, token]
     );
 
-    await sendVerificationMail(email, "Kullanıcı", token);
+    await sendVerificationMail(email, name, token);
 
     res.status(200).json({ message: "Kayıt başarılı, doğrulama maili gönderildi." });
   } catch (err) {
@@ -35,6 +33,7 @@ export const register = async (req, res) => {
     res.status(500).json({ message: "Kayıt sırasında hata oluştu" });
   }
 };
+
 
 
 export const verify = async (req, res) => {
@@ -62,8 +61,6 @@ export const verify = async (req, res) => {
 
 
 
-
-
 export const Clientlogin = async (req, res) => {
   const { email, password } = req.body;
 
@@ -72,34 +69,49 @@ export const Clientlogin = async (req, res) => {
   }
 
   try {
-    // Kullanıcıyı email ile bul
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rowCount === 0) {
+    // önce users tablosuna bak
+    let result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let user = result.rows[0];
+    let table = 'users';
+
+    // user yoksa admins tablosuna bak
+    if (!user) {
+      result = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
+      user = result.rows[0];
+      table = 'admins';
+    }
+
+    if (!user) {
       return res.status(400).json({ message: "Kullanıcı bulunamadı" });
     }
 
-    const user = result.rows[0];
+    // password kontrolü
+    let validPassword = false;
+    if (table === 'admins') {
+      validPassword = password === user.password; // admin düz metin
+    } else {
+      validPassword = await bcrypt.compare(password, user.password); // normal user hash
+      if (!user.is_verified) return res.status(403).json({ message: "Mail doğrulanmamış" });
+    }
 
-    // Şifreyi doğrula
-    const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(400).json({ message: "Şifre hatalı" });
     }
 
-    // Mail doğrulama kontrolü
-    if (!user.is_verified) {
-      return res.status(403).json({ message: "Mail doğrulanmamış" });
-    }
+    // ✅ tabloya göre role belirle
+    const role = table === 'admins' ? 'admin' : 'user';
 
-    // JWT token oluştur
     const token = jwt.sign(
-      { userId: user.id, email: user.email }, // payload
-      process.env.SECRET_KEY,               // .env'den al
+      { userId: user.id, email: user.email, role },
+      process.env.SECRET_KEY,
       { expiresIn: '1h' }
     );
 
-    // Başarılı yanıt
-    res.status(200).json({ message: "Giriş başarılı", token });
+    res.status(200).json({
+      message: "Giriş başarılı",
+      token,
+      role
+    });
 
   } catch (err) {
     console.error("Login hatası:", err);
