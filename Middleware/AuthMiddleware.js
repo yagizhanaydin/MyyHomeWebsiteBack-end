@@ -18,3 +18,23 @@ const verifyToken = (req, res, next) => {
 };
 
 export default verifyToken;
+
+
+
+export const isAdmin = (req, res, next) => {
+  try {
+
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Token yok" });
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ message: "Bu işlem sadece adminlere açık!" });
+    }
+
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(403).json({ message: "Yetkisiz erişim!" });
+  }
+};

@@ -1,5 +1,10 @@
+import express from "express";
+import verifyToken, { isAdmin } from "../Middleware/AuthMiddleware.js";
+import { GetAdminCompanyData } from "../controller/AdminController.js";
 
-import express from 'express';
 const router = express.Router();
 
-router.get('/com')
+// 🔒 sadece adminler erişebilir
+router.get("/companylist", verifyToken, isAdmin, GetAdminCompanyData);
+
+export default router;

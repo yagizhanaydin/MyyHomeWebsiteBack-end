@@ -6,6 +6,7 @@ import ilanRoutes from './routes/ilanRoutes.js';
 import odaYenilemeRoutes from './routes/OdaYenilemeRoutes.js'; 
 import companyRoutes from './routes/companyRoutes.js'; 
 import path from 'path';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -19,11 +20,13 @@ app.use(cors({
 }));
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/companyuploads", express.static(path.join(process.cwd(), "companyuploads")));
 
 app.use('/api', authRoutes);
 app.use('/home', ilanRoutes);
 app.use('/oda-yenileme', odaYenilemeRoutes); 
 app.use('/company', companyRoutes); 
+app.use('/admin', adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server ${PORT} portunda çalışıyor`));
