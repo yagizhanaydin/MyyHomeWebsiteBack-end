@@ -130,3 +130,24 @@ export const AddTeklif = async (req, res) => {
     res.status(500).json({ message: "Bir hata oluştu", error });
   }
 };
+
+export const GetUserTeklifleri = async (req, res) => {
+  const userId = req.userId; // verifyToken ile geliyor
+
+  try {
+    const result = await pool.query(
+      `SELECT t.teklif_fiyat, t.aciklama, t.teklif_tarihi,
+              c.company_name, c.phone_number
+       FROM teklifler t
+       LEFT JOIN companies c ON t.company_id = c.id
+       WHERE t.user_id = $1
+       ORDER BY t.teklif_tarihi DESC`,
+      [userId]
+    );
+
+    res.status(200).json({ teklifler: result.rows });
+  } catch (error) {
+    console.error("GetUserTeklifleri hatası:", error);
+    res.status(500).json({ message: "Sunucu hatası", error });
+  }
+};

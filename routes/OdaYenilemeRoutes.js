@@ -4,6 +4,7 @@ import {
   AddTeklif,
   GetOdaYenileme,
   GetOdaYenilemeDetail,
+  GetUserTeklifleri,
   upload
 } from '../controller/OdaYenilemeHizmetleriController.js';
 import verifyToken from '../Middleware/AuthMiddleware.js';
@@ -14,4 +15,6 @@ router.post('/add-odahizmet', upload.array('fotolar', 9), verifyToken, AddOdaYen
 router.get('/get-odahizmet', GetOdaYenileme);
 router.get('/odahizmet-detail/:id', GetOdaYenilemeDetail);
 router.post("/ekle", verifyToken,AddTeklif);
+router.get("/tekliflerim", verifyToken, GetUserTeklifleri);
+
 export default router;
