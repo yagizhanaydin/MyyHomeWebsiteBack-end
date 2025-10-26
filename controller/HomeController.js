@@ -4,9 +4,9 @@ import path from 'path';
 import pool from '../database/DB.js';
 import dotenv from 'dotenv';
 
-dotenv.config(); // .env dosyasını yükle
+dotenv.config(); 
 
-// Multer ayarları
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');

@@ -6,10 +6,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Multer ayarları
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Fotoğraflar uploads klasörüne kaydedilecek
+    cb(null, 'uploads/'); 
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -95,5 +95,38 @@ export const GetOdaYenilemeDetail = async (req, res) => {
   } catch (error) {
     console.error("Oda detay çekilirken hata:", error);
     res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+
+
+
+export const AddTeklif = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Token bulunamadı" });
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const companyId = decoded.companyId; // firmalar login olurken JWT içine companyId koymalısın
+
+    const { odaYenilemeId, teklifFiyat, aciklama } = req.body;
+
+    // oda_yenileme tablosundan user_id'yi çekelim
+    const odaResult = await pool.query("SELECT user_id FROM oda_yenileme WHERE id = $1", [odaYenilemeId]);
+    if (odaResult.rows.length === 0)
+      return res.status(404).json({ message: "Oda yenileme bulunamadı" });
+
+    const userId = odaResult.rows[0].user_id;
+
+    const result = await pool.query(
+      `INSERT INTO teklifler (oda_yenileme_id, company_id, user_id, teklif_fiyat, aciklama)
+       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [odaYenilemeId, companyId, userId, teklifFiyat, aciklama]
+    );
+
+    res.status(201).json({ message: "Teklif başarıyla gönderildi", teklif: result.rows[0] });
+  } catch (error) {
+    console.error("AddTeklif hatası:", error);
+    res.status(500).json({ message: "Bir hata oluştu", error });
   }
 };

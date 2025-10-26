@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   AddOdaYenileme,
+  AddTeklif,
   GetOdaYenileme,
   GetOdaYenilemeDetail,
   upload
@@ -12,5 +13,5 @@ const router = express.Router();
 router.post('/add-odahizmet', upload.array('fotolar', 9), verifyToken, AddOdaYenileme);
 router.get('/get-odahizmet', GetOdaYenileme);
 router.get('/odahizmet-detail/:id', GetOdaYenilemeDetail);
-
+router.post("/ekle", verifyToken,AddTeklif);
 export default router;
